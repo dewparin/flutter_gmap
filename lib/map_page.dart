@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -11,6 +13,30 @@ class MapPage extends StatefulWidget {
 class _State extends State<MapPage> {
   final LatLng _center = const LatLng(13.731283160553428, 100.5416772151501);
 
+  final List<LatLng> _currentPoints = [];
+
+  Set<Marker> get _markers => HashSet.from(_currentPoints
+      .map<Marker>((point) => Marker(
+            markerId: MarkerId(point.hashCode.toString()),
+            position: point,
+          ))
+      .toList());
+
+  Set<Polygon> get _polygons => HashSet.from([
+    Polygon(
+      polygonId: const PolygonId('myPolygon'),
+      points: _currentPoints,
+      strokeWidth: 2,
+      fillColor: Colors.yellow.withOpacity(0.4),
+    )
+  ]);
+
+  void _onTapMapPoint(LatLng location) {
+    setState(() {
+      _currentPoints.add(location);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,6 +49,9 @@ class _State extends State<MapPage> {
           target: _center,
           zoom: 15,
         ),
+        onTap: _onTapMapPoint,
+        markers: _markers,
+        polygons: _polygons,
       ),
     );
   }
